@@ -102,20 +102,20 @@ class Surreal
 	}
 
 	private static function surrealizeObject($obj){
+		$classname = get_class($obj);
+		$rc = new \ReflectionClass($obj);
+		$props = $rc->getProperties();
 		return implode(':',array(
 			'O',
-			strlen(get_class($obj)),
-			'"'.get_class($obj).'"',
-			count($obj),
-			'{'.self::surrealizeObjectProperties($obj).'}'
+			strlen($classname),
+			'"'.$classname.'"',
+			count($props),
+			'{'.self::surrealizeObjectProperties($classname, $obj, $props).'}'
 		));
 	}
 
-	private static function surrealizeObjectProperties($obj){
-		$rc = new \ReflectionClass($obj);
+	private static function surrealizeObjectProperties($classname, $obj, $props){
 		$return = '';
-		$classname = get_class($obj);
-		$props = $rc->getProperties();
 		foreach($props as $k=>$prop){
 			$prop->setAccessible(true);
 			if($prop->isPublic()){
