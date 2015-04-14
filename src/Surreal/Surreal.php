@@ -38,33 +38,39 @@ class Surreal
 	}
 
 	private static function serializeObject($obj){
-		$rc = new \ReflectionClass($obj);
-		$props = $rc->getProperties();
-		return 'O:'.strlen(get_class($obj)).':"'.get_class($obj).'":'.count($props).':{'.self::serializeObjectProperties($obj,$props).'}';
+		return 'O:'.strlen(get_class($obj)).':"'.get_class($obj).'":'.count($obj).':{'.self::serializeObjectProperties($obj).'}';
 	}
 
-	private static function serializeObjectProperties($obj, $props){
+	private static function serializeObjectProperties($obj){
+		$rc = new \ReflectionClass($obj);
 		$return = '';
 		$classname = get_class($obj);
-		foreach($props as $prop){
-			$prop->setAccessible(true);
-			if($prop->isPublic()){
-				$return .= self::surrealize($prop->getName());
-				$return .= self::surrealize($prop->getValue($obj));
+		foreach($obj as $k=>$v){
+			try{
+				$prop = $rc->getProperty($k);
+				$prop->setAccessible(true);
+				if($prop->isPublic()){
+					$return .= self::surrealize($prop->getName());
+					$return .= self::surrealize($prop->getValue($obj));
+				}
+				else if($prop->isProtected()){
+					$name = pack('C',0x00).'*'.pack('C',0x00).$prop->getName();
+					$return .= 's:'.strlen($name).':"'.$name.'";';
+					$return .= self::surrealize($prop->getValue($obj));
+				}
+				else if($prop->isPrivate()){
+					$name = pack('C',0x00).$classname.pack('C',0x00).$prop->getName();
+					$return .= 's:'.strlen($name).':"'.$name.'";';
+					$return .= self::surrealize($prop->getValue($obj));
+				}
+				else if($prop->isStatic){
+					$return .= self::surrealize($prop->getName());
+					$return .= self::surrealize($prop->getValue($obj));
+				}
 			}
-			else if($prop->isProtected()){
-				$name = pack('C',0x00).'*'.pack('C',0x00).$prop->getName();
-				$return .= 's:'.strlen($name).':"'.$name.'";';
-				$return .= self::surrealize($prop->getValue($obj));
-			}
-			else if($prop->isPrivate()){
-				$name = pack('C',0x00).$classname.pack('C',0x00).$prop->getName();
-				$return .= 's:'.strlen($name).':"'.$name.'";';
-				$return .= self::surrealize($prop->getValue($obj));
-			}
-			else if($prop->isStatic){
-				$return .= self::surrealize($prop->getName());
-				$return .= self::surrealize($prop->getValue($obj));
+			catch(\ReflectionException $e){
+				$return .= self::surrealize($k);
+				$return .= self::surrealize($v);
 			}
 		}
 		return $return;
