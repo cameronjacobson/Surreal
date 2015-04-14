@@ -33,9 +33,6 @@ class Surreal
 			return $stuff.'}';
 		}
 		else if(is_object($anything)){
-			if(get_class($anything) == 'stdClass'){
-				return self::surrealize((array)$anything);
-			}
 			return self::serializeObject($anything);
 		}
 	}

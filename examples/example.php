@@ -20,8 +20,6 @@ $blah = new Blah();
 $blah->blah4 = 33;
 $blah->blah7 = new Blah();
 
-//echo serialize($blah);
-//exit;
 $values = array(
 	1,
 	2.0,
@@ -35,9 +33,18 @@ $values = array(
 	$blah,
 );
 
-foreach($values as $value){
+foreach($values as $key => $value){
+	echo 'TEST#: '.$key.PHP_EOL;
+
+	$start = microtime(true);
 	$ser = Surreal::surrealize($value);
-	echo $ser.PHP_EOL;
+	echo ' '.(microtime(true) - $start).PHP_EOL;
+
+	$start = microtime(true);
+	$ser = serialize($value);
+	echo ' '.(microtime(true) - $start).PHP_EOL;
+
+	//echo $ser.PHP_EOL;
 	var_dump($gg = unserialize($ser));
 }
 
