@@ -1,0 +1,8 @@
+{
+	"name":"surreal/surreal",
+	"autoload": {
+		"psr-0": {
+			"Surreal": "src/"
+		}
+	}
+}
