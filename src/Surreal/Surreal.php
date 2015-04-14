@@ -8,6 +8,7 @@ use \ReflectionProperty;
 class Surreal
 {
 	public static function surrealize($anything){
+
 		if(is_null($anything)){
 			return 'N;';
 		}
@@ -50,21 +51,23 @@ class Surreal
 		$classname = get_class($obj);
 		foreach($props as $prop){
 			$prop->setAccessible(true);
-			if($prop::IS_STATIC){
+			if($prop->isPublic()){
 				$return .= self::surrealize($prop->getName());
 				$return .= self::surrealize($prop->getValue($obj));
 			}
-			else if($prop::IS_PUBLIC){
-				$return .= self::surrealize($prop->getName());
+			else if($prop->isProtected()){
+				$name = pack('C',0x00).'*'.pack('C',0x00).$prop->getName();
+				$return .= 's:'.strlen($name).':"'.$name.'";';
 				$return .= self::surrealize($prop->getValue($obj));
 			}
-			else if($prop::IS_PROTECTED){
-				$return .= self::surrealize($prop->getName());
-				$return .= pack('c',0x00).'*'.pack('c',0x00).self::surrealize($prop->getValue($obj));
+			else if($prop->isPrivate()){
+				$name = pack('C',0x00).$classname.pack('C',0x00).$prop->getName();
+				$return .= 's:'.strlen($name).':"'.$name.'";';
+				$return .= self::surrealize($prop->getValue($obj));
 			}
-			else if($prop::IS_PRIVATE){
+			else if($prop->isStatic){
 				$return .= self::surrealize($prop->getName());
-				$return .= pack('c',0x00).$classname.pack('c',0x00).self::surrealize($prop->getValue($obj));
+				$return .= self::surrealize($prop->getValue($obj));
 			}
 		}
 		return $return;
