@@ -38,7 +38,13 @@ class Surreal
 	}
 
 	private static function serializeObject($obj){
-		return 'O:'.strlen(get_class($obj)).':"'.get_class($obj).'":'.count($obj).':{'.self::serializeObjectProperties($obj).'}';
+		return implode(':',array(
+			'O',
+			strlen(get_class($obj)),
+			'"'.get_class($obj).'"',
+			count($obj),
+			'{'.self::serializeObjectProperties($obj).'}'
+		));
 	}
 
 	private static function serializeObjectProperties($obj){
